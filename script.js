@@ -1,64 +1,51 @@
-// script.js
-
-const canvas = document.getElementById('canvas');
-const draggables = document.querySelectorAll('.draggable');
-const resetBtn = document.getElementById('reset-btn');
+const canvas = document.getElementById("canvas");
+const images = document.querySelectorAll(".draggable");
+const modal = document.getElementById("modal");
+const modalImage = document.getElementById("modal-image");
+const closeModal = document.getElementById("close-modal");
 
 let isDragging = false;
-let startX, startY;
-let offsetX = 0, offsetY = 0;
-let zoomLevel = 1;
+let startX, startY, scrollLeft, scrollTop;
 
-// Dragging canvas
-canvas.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.clientX - offsetX;
-    startY = e.clientY - offsetY;
-    canvas.style.cursor = 'grabbing';
+// Enable canvas dragging
+canvas.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  startX = e.pageX - canvas.offsetLeft;
+  startY = e.pageY - canvas.offsetTop;
+  scrollLeft = window.scrollX;
+  scrollTop = window.scrollY;
+  canvas.style.cursor = "grabbing";
 });
 
-canvas.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-        offsetX = e.clientX - startX;
-        offsetY = e.clientY - startY;
-        canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoomLevel})`;
-    }
+canvas.addEventListener("mouseup", () => {
+  isDragging = false;
+  canvas.style.cursor = "grab";
 });
 
-canvas.addEventListener('mouseup', () => {
-    isDragging = false;
-    canvas.style.cursor = 'grab';
+canvas.addEventListener("mouseleave", () => {
+  isDragging = false;
+  canvas.style.cursor = "grab";
 });
 
-canvas.addEventListener('mouseleave', () => {
-    isDragging = false;
-    canvas.style.cursor = 'grab';
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  e.preventDefault();
+  const x = e.pageX - canvas.offsetLeft;
+  const y = e.pageY - canvas.offsetTop;
+  const walkX = x - startX;
+  const walkY = y - startY;
+  window.scrollTo(scrollLeft - walkX, scrollTop - walkY);
 });
 
-// Zooming canvas
-canvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const zoomIntensity = 0.1;
-    zoomLevel += e.deltaY < 0 ? zoomIntensity : -zoomIntensity;
-    zoomLevel = Math.max(0.5, Math.min(zoomLevel, 3)); // Limit zoom range between 0.5 and 3
-    canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoomLevel})`;
+// Handle image clicks to zoom
+images.forEach((img) => {
+  img.addEventListener("click", () => {
+    modal.style.display = "flex";
+    modalImage.src = img.src;
+  });
 });
 
-// Reset canvas
-resetBtn.addEventListener('click', () => {
-    offsetX = 0;
-    offsetY = 0;
-    zoomLevel = 1;
-    canvas.style.transform = `translate(0, 0) scale(1)`;
-});
-
-// Clickable images with fade-out effect
-draggables.forEach((image) => {
-    image.addEventListener('click', (e) => {
-        e.stopPropagation();
-        image.classList.add('fade-out');
-        setTimeout(() => {
-            image.classList.remove('fade-out');
-        }, 1000); // Reset the image after 1 second
-    });
+// Close modal
+closeModal.addEventListener("click", () => {
+  modal.style.display = "none";
 });
